@@ -102,6 +102,7 @@ public class Configuration {
       setSignData(signatureFile, keypass, storealias, storepass);
     }
     if (mappingFile != null) {
+      mUseKeepMapping = true;
       setKeepMappingData(mappingFile);
     }
     // setSignData and setKeepMappingData must before readXmlConfig or it will read
@@ -224,8 +225,8 @@ public class Configuration {
             }
             break;
           case MAPPING_ISSUE:
-            mUseKeepMapping = active;
-            if (mUseKeepMapping) {
+            mUseKeepMapping |= active;
+            if (active) {
               loadMappingFilesFromXml(node);
             }
             break;
