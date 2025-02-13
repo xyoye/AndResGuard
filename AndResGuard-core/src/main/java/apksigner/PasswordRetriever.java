@@ -174,7 +174,9 @@ class PasswordRetriever implements AutoCloseable {
       if (consoleCharsetName == null) {
         return Charset.defaultCharset();
       }
-    } catch (ReflectiveOperationException e) {
+    } catch (Exception e) {
+      // macOS 15.1.1, Java 17
+      // Running Jar in CLI mode, the setAccessible method may throw InaccessibleObjectException
       Charset defaultCharset = Charset.defaultCharset();
       System.err.println("warning: Failed to obtain console character encoding name. Assuming " + defaultCharset);
       return defaultCharset;

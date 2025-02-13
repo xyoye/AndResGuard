@@ -6,9 +6,9 @@ version rootProject.ext.VERSION_NAME
 group rootProject.ext.GROUP
 
 dependencies {
-  compile fileTree(dir: 'libs', include: ['*.jar'])
-  //compile group: 'com.tencent.mm', name: 'AndResGuard-core', version: version
-  compile project(':AndResGuard-core')
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
+  //implementation group: 'com.tencent.mm', name: 'AndResGuard-core', version: version
+  implementation project(':AndResGuard-core')
 }
 
 sourceSets {
@@ -26,9 +26,14 @@ jar {
     attributes "Jar-Version": "${ANDRESGUARD_VESSION}"
     attributes "Build-Time": releaseTime()
   }
+
+  configurations.implementation.setCanBeResolved(true)
   from {
-    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    configurations.implementation.collect { it.isDirectory() ? it : zipTree(it) }
   }
+
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }
 
 // copy the jar to work directory

@@ -1,5 +1,5 @@
 //apply plugin: 'com.google.osdetector'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'maven-publish'
 apply plugin: 'java'
 
