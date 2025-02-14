@@ -69,7 +69,7 @@ public class Configuration {
   public String mStoreAlias;
   public String m7zipPath;
   public String mZipalignPath;
-  public String mWhiteListPackageName = "";
+  public String mWhitelistPackageName;
 
   /**
    * use by command line with xml config
@@ -94,7 +94,9 @@ public class Configuration {
       File signatureFile,
       String keypass,
       String storealias,
-      String storepass) throws IOException, ParserConfigurationException, SAXException {
+      String storepass,
+      String whitelistPackageName
+  ) throws IOException, ParserConfigurationException, SAXException {
     mWhiteList = new HashMap<>();
     mOldResMapping = new HashMap<>();
     mOldFileMapping = new HashMap<>();
@@ -107,7 +109,8 @@ public class Configuration {
       mUseKeepMapping = true;
       setKeepMappingData(mappingFile);
     }
-    // setSignData and setKeepMappingData must before readXmlConfig or it will read
+    // setSignData、mWhiteListPackageName and setKeepMappingData must before readXmlConfig or it will read
+    this.mWhitelistPackageName = whitelistPackageName;
     readXmlConfig(config);
     this.m7zipPath = sevenzipPath;
     this.mZipalignPath = zipAlignPath;
@@ -211,7 +214,11 @@ public class Configuration {
           case WHITELIST_ISSUE:
             mUseWhiteList = active;
             if (mUseWhiteList) {
-              mWhiteListPackageName = element.getAttribute(ATTR_PACKAGENAME);
+              if (mWhitelistPackageName == null || mWhitelistPackageName.isEmpty()) {
+                mWhitelistPackageName = element.getAttribute(ATTR_PACKAGENAME);
+              } else {
+                System.err.println("already set the white package name from command line, ignore this");
+              }
               readWhiteListFromXml(node);
             }
             break;
@@ -271,11 +278,11 @@ public class Configuration {
     boolean usePackageNameNode = false;
     int packagePos = item.indexOf(".R.");
     if (packagePos == -1) {
-      if (!mWhiteListPackageName.isEmpty()) {
+      if (mWhitelistPackageName != null && !mWhitelistPackageName.isEmpty()) {
         usePackageNameNode = true;
       } else {
         throw new IOException(
-                String.format("please set the first node as package node or write the full package name, eg com.tencent.mm.R.drawable.abc, but yours %s\n", item)
+                String.format("please set a whitelist package name or write the full package name, eg com.tencent.mm.R.drawable.abc, but yours %s\n", item)
         );
       }
     }
@@ -285,7 +292,7 @@ public class Configuration {
     // 获取包名
     String packageName;
     if (usePackageNameNode) {
-      packageName = mWhiteListPackageName;
+      packageName = mWhitelistPackageName;
     } else {
       packageName = item.substring(0, packagePos);
     }

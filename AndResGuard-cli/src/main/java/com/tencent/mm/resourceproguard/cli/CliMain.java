@@ -28,6 +28,7 @@ public class CliMain extends Main {
   private static final String ARG_KEEPMAPPING = "-mapping";
   private static final String ARG_REPACKAGE = "-repackage";
   private static final String ARG_SIGNATURE_TYPE = "-signatureType";
+  private static final String ARG_WHITELIST_PACKAGE_NAME = "-whitelistPackageName";
   private static final String VALUE_SIGNATURE_TYPE_V1 = "v1";
   private static final String VALUE_SIGNATURE_TYPE_V2 = "v2";
 
@@ -220,8 +221,9 @@ public class CliMain extends Main {
       final File outputFile = readArgs.getOutputFile();
       final File finalApkFile = readArgs.getFinalApkFile();
       final String apkFileName = readArgs.getApkFileName();
+      final String whitelistPackageName = readArgs.getWhitelistPackageName();
       final InputParam.SignatureType signatureType = readArgs.getSignatureType();
-      loadConfigFromXml(configFile, signatureFile, mappingFile, keypass, storealias, storepass);
+      loadConfigFromXml(configFile, signatureFile, mappingFile, keypass, storealias, storepass, whitelistPackageName);
 
       //对于repackage模式，不管之前的东东，直接return
       if (signedFile != null) {
@@ -248,7 +250,14 @@ public class CliMain extends Main {
   }
 
   private void loadConfigFromXml(
-      File configFile, File signatureFile, File mappingFile, String keypass, String storealias, String storepass) {
+      File configFile,
+      File signatureFile,
+      File mappingFile,
+      String keypass,
+      String storealias,
+      String storepass,
+      String whitelistPackageName
+  ) {
     if (configFile == null) {
       configFile = new File(mRunningLocation + File.separator + TypedValue.CONFIG_FILE);
       if (!configFile.exists()) {
@@ -272,7 +281,8 @@ public class CliMain extends Main {
           signatureFile,
           keypass,
           storealias,
-          storepass
+          storepass,
+          whitelistPackageName
       );
     } catch (IOException | ParserConfigurationException | SAXException e) {
       e.printStackTrace();
@@ -303,6 +313,7 @@ public class CliMain extends Main {
     private String storepass;
     private InputParam.SignatureType signatureType = InputParam.SignatureType.SchemaV1;
     private String signedFile;
+    private String whitelistPackageName;
 
     public ReadArgs(String[] args) {
       this.args = args;
@@ -350,6 +361,10 @@ public class CliMain extends Main {
 
     public String getSignedFile() {
       return signedFile;
+    }
+
+    public String getWhitelistPackageName() {
+      return whitelistPackageName;
     }
 
     public ReadArgs invoke() {
@@ -467,6 +482,12 @@ public class CliMain extends Main {
             goToError();
           }
           signedFile = args[++index];
+        } else if (arg.equals(ARG_WHITELIST_PACKAGE_NAME)) {
+          if (index == args.length - 1) {
+            System.err.println("Missing whiteListPackageName argument");
+            goToError();
+          }
+          whitelistPackageName = args[++index];
         } else {
           apkFileName = arg;
         }
