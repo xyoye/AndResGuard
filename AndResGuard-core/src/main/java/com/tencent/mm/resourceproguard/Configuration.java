@@ -46,6 +46,7 @@ public class Configuration {
   private static final String ATTR_SIGNFILE_KEYPASS = "keypass";
   private static final String ATTR_SIGNFILE_STOREPASS = "storepass";
   private static final String ATTR_SIGNFILE_ALIAS = "alias";
+  private static final String ATTR_PACKAGENAME = "packagename";
   public final HashMap<String, HashMap<String, HashSet<Pattern>>> mWhiteList;
   public final HashMap<String, HashMap<String, HashMap<String, String>>> mOldResMapping;
   public final HashMap<String, String> mOldFileMapping;
@@ -68,6 +69,7 @@ public class Configuration {
   public String mStoreAlias;
   public String m7zipPath;
   public String mZipalignPath;
+  public String mWhiteListPackageName = "";
 
   /**
    * use by command line with xml config
@@ -209,6 +211,7 @@ public class Configuration {
           case WHITELIST_ISSUE:
             mUseWhiteList = active;
             if (mUseWhiteList) {
+              mWhiteListPackageName = element.getAttribute(ATTR_PACKAGENAME);
               readWhiteListFromXml(node);
             }
             break;
@@ -265,16 +268,28 @@ public class Configuration {
       throw new IOException("Invalid config file: Missing required attribute " + ATTR_VALUE);
     }
 
+    boolean usePackageNameNode = false;
     int packagePos = item.indexOf(".R.");
     if (packagePos == -1) {
-
-      throw new IOException(String.format("please write the full package name,eg com.tencent.mm.R.drawable.dfdf, but yours %s\n",
-          item
-      ));
+      if (!mWhiteListPackageName.isEmpty()) {
+        usePackageNameNode = true;
+      } else {
+        throw new IOException(
+                String.format("please set the first node as package node or write the full package name, eg com.tencent.mm.R.drawable.abc, but yours %s\n", item)
+        );
+      }
     }
     //先去掉空格
     item = item.trim();
-    String packageName = item.substring(0, packagePos);
+
+    // 获取包名
+    String packageName;
+    if (usePackageNameNode) {
+      packageName = mWhiteListPackageName;
+    } else {
+      packageName = item.substring(0, packagePos);
+    }
+
     //不能通过lastDot
     int nextDot = item.indexOf(".", packagePos + 3);
     String typeName = item.substring(packagePos + 3, nextDot);
